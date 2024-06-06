@@ -1,44 +1,41 @@
-import ipydatagrid
-from ipydatagrid import DataGrid
-from IPython.display import display
+import json
 import pandas as pd
 import ipywidgets as widgets
+from ipydatagrid import DataGrid
+from IPython.display import display
 
-# Sample data
-data = [
-    {"name": "Alice", "age": 30, "city": "New York"},
-    {"name": "Bob", "age": 25, "city": "San Francisco"},
-    {"name": "Charlie", "age": 35, "city": "Los Angeles"}
-]
+def load_data(file_path):
+    """Load data from a JSON file."""
+    with open(file_path) as file:
+        return json.load(file)
 
-# Convert the list of dictionaries to a pandas DataFrame
-df = pd.DataFrame(data)
+def create_dataframe(data):
+    """Convert a list of dictionaries to a pandas DataFrame."""
+    return pd.DataFrame(data)
 
-# Create a DataGrid from the DataFrame
-grid = DataGrid(df, editable=True)
+def create_datagrid(dataframe):
+    """Create an editable DataGrid from a DataFrame."""
+    return DataGrid(dataframe, editable=True)
 
-# Function to get the updated data from the grid
-def get_updated_data(grid):
-    # Convert the grid to a pandas DataFrame
-    df = pd.DataFrame(grid.data)
-    # Convert the DataFrame back to a list of dictionaries
-    updated_data = df.to_dict(orient='records')
+def get_updated_data(grid, output_widget):
+    """Function to get and display the updated data from the grid."""
+    with output_widget:
+        output_widget.clear_output()
+        updated_data = pd.DataFrame(grid.data).to_dict(orient='records')
     return updated_data
 
-# Create a button to retrieve updated data
-update_button = widgets.Button(description="Get Updated Data")
+# Load the sample data
+data = load_data('sample_data.json')
 
-# Output widget to display updated data
+# Convert to DataFrame
+df = create_dataframe(data)
+
+# Create DataGrid
+grid = create_datagrid(df)
+
+# Output widget for displaying updates
 output = widgets.Output()
 
-# Button click handler
-def on_button_click(b):
-    with output:
-        output.clear_output()
-        updated_data = get_updated_data(grid)
-        print(updated_data)
+grid
 
-update_button.on_click(on_button_click)
-
-# Display the grid, button, and output
-display(grid, update_button, output)
+get_updated_data(grid, output)
