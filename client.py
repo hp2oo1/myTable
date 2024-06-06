@@ -1,15 +1,13 @@
-from excel_like_table import create_table
+from editable_data_grid import EditableDataGrid
 
-# Use create_table function
+# Sample data
 data = [
-    {'name': 'John', 'birthday': '1990-01-01', 'age': 30, 'city': ['New York', 'Los Angeles']},
-    {'name': 'Jane', 'birthday': '1995-05-10', 'age': 25, 'city': ['San Francisco', 'Chicago']}
+    {"name": "Alice", "age": 30, "city": ["New York", "Boston"], "birthday": "1993-01-01"},
+    {"name": "Bob", "age": 25, "city": ["San Francisco", "Seattle"], "birthday": "1998-05-15"},
+    {"name": "Charlie", "age": 35, "city": ["Los Angeles", "Chicago"], "birthday": "1988-10-22"}
 ]
-app = create_table(data)
 
-# Run the app
-if __name__ == '__main__':
-    app.run_server(debug=True)
+# Example usage:
+editable_grid = EditableDataGrid(data)
 
-# Check data
-app.data
+editable_grid.get_updated_data()
