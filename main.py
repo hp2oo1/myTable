@@ -1,4 +1,4 @@
-from editable_data_grid import EditableDataGrid
+from editable_grid import EditableGrid
 from datetime import datetime
 
 # Sample data
@@ -9,8 +9,8 @@ data = [
 ]
 
 # Example usage:
-editable_grid = EditableDataGrid(data)
+editable_grid = EditableGrid(data)
 
-editable_grid.get_updated_data()
+editable_grid.get_data()
 
 
