@@ -5,6 +5,7 @@ import json
 from IPython.display import display as ipy_display
 import ipywidgets as widgets
 from ipywidgets import HBox, VBox
+import clipboard
 
 class EditableGrid:
     def __init__(self, data, columns=None):
@@ -25,7 +26,11 @@ class EditableGrid:
         self.grid = DataGrid(self.processed_data, editable=True, auto_fit_columns=True)
         self.grid.on_cell_change(self._on_data_change)
         self.grid.on_cell_click(self._on_cell_click)
-        
+
+        # Add Paste Button
+        self.paste_button = widgets.Button(description="paste", layout=widgets.Layout(width='auto', height='auto'))
+        self.paste_button.on_click(self.on_paste_button_clicked)
+
         # Add Row Button
         self.add_button = widgets.Button(description="+ row", layout=widgets.Layout(width='auto', height='auto'))
         self.remove_button = widgets.Button(description="- row", layout=widgets.Layout(width='auto', height='auto'))
@@ -38,7 +43,7 @@ class EditableGrid:
         self.date_picker.layout.display = 'none'  # Hide it initially
         
         # Combine buttons and date picker in one HBox
-        self.controls = HBox([self.add_button, self.remove_button, self.date_picker])
+        self.controls = HBox([self.paste_button, self.add_button, self.remove_button, self.date_picker])
         
         self.display()
     
@@ -147,7 +152,11 @@ class EditableGrid:
         updated_data = self.get_data()
         print("Grid data updated:")
         print(updated_data)
-    
+
+    def on_paste_button_clicked(self, b):
+        """Handler for paste button click."""
+        self.paste_data()
+
     def on_add_button_clicked(self, b):
         """Handler for add row button click."""
         self.add_row()
@@ -205,3 +214,50 @@ class EditableGrid:
         """Handle date picker change event."""
         if hasattr(self, 'editing_cell'):
             self._complete_date_edit()
+
+    def paste_data(self):
+        """Parse pasted data and update the DataGrid."""
+        pasted_data = self.parse_input(clipboard.paste())
+        self.original_data = pasted_data
+        self.processed_data = self.preprocess_data(pasted_data)
+        self.column_types = self.detect_column_types()
+        self.grid.data = self.processed_data
+
+    def parse_input(self, text):
+        # Split the text into lines
+        lines = text.strip().split('\n')
+        
+        # Extract the header
+        headers = lines[0].split('\t')
+        
+        # Prepare the list to hold the parsed data
+        data = []
+        
+        # Iterate over each line of data (skipping the header)
+        for line in lines[1:]:
+            # Split the line into individual columns
+            values = line.split('\t')
+            
+            # Create a dictionary for the current row
+            entry = {}
+            for header, value in zip(headers, values):
+                try:
+                    # Attempt to convert the string representation of list to actual list
+                    if value.startswith('[') and value.endswith(']'):
+                        entry[header] = ast.literal_eval(value)
+                    # Attempt to convert the string representation of date to datetime object
+                    elif '-' in value:
+                        entry[header] = datetime.strptime(value, "%Y-%m-%d")
+                    # Attempt to convert age to integer
+                    elif header == "age":
+                        entry[header] = int(value)
+                    else:
+                        # Directly assign the value for other headers
+                        entry[header] = value
+                except:
+                    entry[header] = value
+            
+            # Add the current row's dictionary to the data list
+            data.append(entry)
+        
+        return data
