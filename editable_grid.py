@@ -217,47 +217,59 @@ class EditableGrid:
 
     def paste_data(self):
         """Parse pasted data and update the DataGrid."""
-        pasted_data = self.parse_input(clipboard.paste())
+        pasted_data = self.parse_text(clipboard.paste())
         self.original_data = pasted_data
         self.processed_data = self.preprocess_data(pasted_data)
         self.column_types = self.detect_column_types()
         self.grid.data = self.processed_data
 
-    def parse_input(self, text):
+    def parse_value(self, value):
+        # Try parsing as integer
+        try:
+            return int(value)
+        except ValueError:
+            pass
+
+        # Try parsing as float
+        try:
+            return float(value)
+        except ValueError:
+            pass
+
+        # Try parsing as JSON (list)
+        try:
+            return json.loads(value)
+        except json.JSONDecodeError:
+            pass
+
+        # Try parsing as datetime
+        formats = ['%Y-%m-%d', '%m-%d-%Y', '%d-%m-%Y', '%Y/%m/%d', '%m/%d/%Y', '%d/%m/%Y']
+        for fmt in formats:
+            try:
+                return datetime.strptime(value, fmt)
+            except ValueError:
+                pass
+
+        # If all parsing attempts fail, return the value as is (string)
+        return value
+
+    def parse_text(self, text):
         # Split the text into lines
         lines = text.strip().split('\n')
-        
+
         # Extract the header
-        headers = lines[0].split('\t')
-        
-        # Prepare the list to hold the parsed data
-        data = []
-        
-        # Iterate over each line of data (skipping the header)
+        header = lines[0].split('\t')
+
+        # Initialize the list of dictionaries
+        parsed_data = []
+
+        # Iterate over each line of text
         for line in lines[1:]:
-            # Split the line into individual columns
             values = line.split('\t')
-            
-            # Create a dictionary for the current row
             entry = {}
-            for header, value in zip(headers, values):
-                try:
-                    # Attempt to convert the string representation of list to actual list
-                    if value.startswith('[') and value.endswith(']'):
-                        entry[header] = ast.literal_eval(value)
-                    # Attempt to convert the string representation of date to datetime object
-                    elif '-' in value:
-                        entry[header] = datetime.strptime(value, "%Y-%m-%d")
-                    # Attempt to convert age to integer
-                    elif header == "age":
-                        entry[header] = int(value)
-                    else:
-                        # Directly assign the value for other headers
-                        entry[header] = value
-                except:
-                    entry[header] = value
-            
-            # Add the current row's dictionary to the data list
-            data.append(entry)
-        
-        return data
+            for i, value in enumerate(values):
+                key = header[i]
+                entry[key] = self.parse_value(value)
+            parsed_data.append(entry)
+
+        return parsed_data
