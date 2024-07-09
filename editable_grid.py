@@ -23,7 +23,7 @@ class EditableGrid:
         if columns:
             self.processed_data = self.processed_data[columns]
         
-        self.grid = DataGrid(self.processed_data, editable=True, auto_fit_columns=True)
+        self.grid = DataGrid(self.processed_data, editable=True, auto_fit_columns=True, copy_config_headers='column')
         self.grid.on_cell_change(self._on_data_change)
         self.grid.on_cell_click(self._on_cell_click)
 
