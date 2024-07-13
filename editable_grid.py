@@ -5,7 +5,7 @@ import json
 from IPython.display import display as ipy_display
 import ipywidgets as widgets
 from ipywidgets import HBox, VBox
-import clipboard
+# import clipboard
 
 class EditableGrid:
     def __init__(self, data, columns=None):
@@ -217,7 +217,11 @@ class EditableGrid:
 
     def paste_data(self):
         """Parse pasted data and update the DataGrid."""
-        pasted_data = self.parse_text(clipboard.paste())
+        pasted_data = self.parse_text("""
+name	age	city	hobbies	birthday	scores
+Alice	30	New York	["reading", "hiking", "coding"]	1993-01-15	[85.5, 92.3, 78.8]
+Bob	25	San Francisco	["swimming", "gaming"]	1998-04-22	[88.0, 76.4]
+        """)
         self.original_data = pasted_data
         self.processed_data = self.preprocess_data(pasted_data)
         self.column_types = self.detect_column_types()
